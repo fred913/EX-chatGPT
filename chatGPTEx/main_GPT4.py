@@ -107,30 +107,28 @@ def add_chat():
     uuid = str(request.form.get("uuid"))
     message = str(request.form.get("msg"))
     chatbot.add_to_conversation(message, role="assistant", convo_id=str(uuid))
-    return parse_text(
-        message + "\n\ntoken cost:" + str(chatbot.token_cost(convo_id=uuid))
-    )
+    return parse_text(message + "\n\ntoken cost:" +
+                      str(chatbot.token_cost(convo_id=uuid)))
 
 
 @app.route("/api/chatLists")
 def get_chat_lists():
     if os.path.isfile(program_dir + "/chatLists.json"):
-        with open(program_dir +"/chatLists.json", "r", encoding="utf-8") as f:
+        with open(program_dir + "/chatLists.json", "r", encoding="utf-8") as f:
             chatLists = json.load(f)
             chatLists["chatLists"] = list(reversed(chatLists["chatLists"]))
         return json.dumps(chatLists)
     else:
         with open(program_dir + "/chatLists.json", "w", encoding="utf-8") as f:
             defaultChatLists = {
-            "chatLists": [
-            {
-            "uuid": "default",
-            "chatName": "Default",
-            }
-            ]
+                "chatLists": [{
+                    "uuid": "default",
+                    "chatName": "Default",
+                }]
             }
         json.dump(defaultChatLists, f, ensure_ascii=False)
         return json.dumps(defaultChatLists)
+
 
 @app.route("/api/history")
 def send_history():
@@ -146,38 +144,37 @@ def send_history():
             query = chat["content"].split("Query:")[1]
             chat["content"] = query
         if chat["role"] == "user":
-            msgs.append(
-                {
-                    "name": "You",
-                    "img": "static/styles/person.jpg",
-                    "side": "right",
-                    "text": parse_text(chat["content"]),
-                    "time": queryTime,
-                }
-            )
+            msgs.append({
+                "name": "You",
+                "img": "static/styles/person.jpg",
+                "side": "right",
+                "text": parse_text(chat["content"]),
+                "time": queryTime,
+            })
         elif chat["role"] == "assistant":
-            msgs.append(
-                {
-                    "name": "ExChatGPT",
-                    "img": "static/styles/ChatGPT_logo.png",
-                    "side": "left",
-                    "text": parse_text(chat["content"]),
-                    "time": queryTime,
-                }
-            )
+            msgs.append({
+                "name": "ExChatGPT",
+                "img": "static/styles/ChatGPT_logo.png",
+                "side": "left",
+                "text": parse_text(chat["content"]),
+                "time": queryTime,
+            })
     return json.dumps(msgs, ensure_ascii=False)
+
+
 lastAPICallListLength = len(APICallList)
+
 
 @app.route("/api/APIProcess")
 def APIProcess():
     global lastAPICallListLength
     if len(APICallList) > lastAPICallListLength:
         lastAPICallListLength += 1
-        return json.dumps(
-        APICallList[lastAPICallListLength - 1], ensure_ascii=False
-        )
+        return json.dumps(APICallList[lastAPICallListLength - 1],
+                          ensure_ascii=False)
     else:
         return {}
+
 
 @app.route("/api/setChatLists", methods=["POST"])
 def set_chat_lists():
@@ -185,11 +182,13 @@ def set_chat_lists():
         json.dump(request.json, f, ensure_ascii=False)
         return "ok"
 
+
 @app.route("/api/promptsCompletion", methods=["get"])
 def promptsCompletion():
     prompt = str(request.args.get("prompt"))
     res = json.dumps(SearchPrompt(prompt), ensure_ascii=False)
     return res
+
 
 subscriptionKey = None
 region = None
@@ -199,11 +198,15 @@ if "Azure" in config:
     if "region" in config["Azure"]:
         region = config["Azure"]["region"]
 
+
 @app.route("/api/getAzureAPIKey", methods=["GET"])
 def AzureAPIKey():
-    return json.dumps(
-    {"subscriptionKey": subscriptionKey, "region": region}, ensure_ascii=False
-    )
+    return json.dumps({
+        "subscriptionKey": subscriptionKey,
+        "region": region
+    },
+                      ensure_ascii=False)
+
 
 if __name__ == "__main__":
     app.config["JSON_AS_ASCII"] = False
